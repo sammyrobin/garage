@@ -23,5 +23,6 @@ final class App
             ?? Response::notFound();
 
         $response->send();
+        Deferred::run();
     }
 }

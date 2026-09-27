@@ -61,9 +61,11 @@ return [
         'notify_to'  => 'samuelt@conqr.mx',
     ],
 
+    // UAPI token with the Quota permission (cPanel → Manage API Tokens). Server-side only.
     'cpanel' => [
-        'host'  => '',
-        'user'  => '',
-        'token' => '',
+        'host'       => '',
+        'user'       => '',
+        'token'      => '',
+        'verify_tls' => true,
     ],
 ];
