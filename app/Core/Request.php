@@ -45,6 +45,12 @@ final class Request
         return $this->post[$key] ?? $default;
     }
 
+    /** All POST fields. */
+    public function all(): array
+    {
+        return $this->post;
+    }
+
     public function file(string $key): ?array
     {
         return $this->files[$key] ?? null;

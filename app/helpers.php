@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Garage\Controllers\BrandStyleController;
 use Garage\Core\Config;
 use Garage\Core\Csrf;
 use Garage\Core\Lang;
@@ -70,4 +71,16 @@ function csrf_field(): string
 function money(float|int|string|null $amount): string
 {
     return '$' . number_format((float) $amount, 2) . ' MXN';
+}
+
+/** Versioned URL of the generated brand-colors stylesheet (never breaks a page if the DB is down). */
+function brands_css_url(): string
+{
+    try {
+        $version = BrandStyleController::version();
+    } catch (Throwable) {
+        $version = '0';
+    }
+
+    return rtrim((string) Config::get('app.base_path', ''), '/') . '/brands.css?v=' . $version;
 }
