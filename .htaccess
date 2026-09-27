@@ -1,0 +1,57 @@
+# GARAGE — self-contained rules for /garage.
+# Does not rely on the portfolio's root .htaccess (which is inherited here).
+
+DirectoryIndex index.php
+Options -Indexes -MultiViews
+AddDefaultCharset UTF-8
+
+# ---------------------------------------------------------------------------
+# Deny sensitive files anywhere in the tree
+# ---------------------------------------------------------------------------
+<FilesMatch "(^\.|\.(sql|md|txt|log|ini|lock|dist|yml|yaml|sh|bak)$|^(config|config\.example)\.php$|^(composer\.json|docker-compose\.yml|Dockerfile)$)">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Private directories answer 404 (do not reveal they exist)
+    RewriteRule ^(app|migrations|storage|bin|docker|vendor|\.git|\.github)(/|$) - [R=404,L]
+
+    # Never run scripts from uploads/
+    RewriteRule ^uploads/.*\.(php\d?|phtml|phar|pl|py|cgi|sh)$ - [R=404,L]
+
+    # Static files and real directories are served as-is
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
+    # Everything else goes to the front controller
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# Static asset headers (PHP responses set their own headers)
+# ---------------------------------------------------------------------------
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    <FilesMatch "\.(css|js|woff2|webp|png|jpg|svg|ico)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_mime.c>
+    AddType font/woff2 .woff2
+    AddType image/webp .webp
+</IfModule>
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml
+</IfModule>
