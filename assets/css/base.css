@@ -2,6 +2,19 @@
    Palette approved in phase 0. Contrast ratios (WCAG) measured on --c-cream / --c-night.
    Yellow is never used as text on light backgrounds (1.4:1). */
 
+/* Self-hosted OFL fonts (licenses in assets/fonts/OFL-*.txt).
+   font-display: optional + preload of the key weights = no font-swap layout shift. */
+@font-face { font-family: "Big Shoulders Display"; src: url("../fonts/big-shoulders-display-900.woff2") format("woff2"); font-weight: 900; font-display: optional; }
+@font-face { font-family: "Big Shoulders Display"; src: url("../fonts/big-shoulders-display-800.woff2") format("woff2"); font-weight: 800; font-display: optional; }
+@font-face { font-family: "Big Shoulders Display"; src: url("../fonts/big-shoulders-display-700.woff2") format("woff2"); font-weight: 700; font-display: optional; }
+@font-face { font-family: "Outfit"; src: url("../fonts/outfit-400.woff2") format("woff2"); font-weight: 400; font-display: optional; }
+@font-face { font-family: "Outfit"; src: url("../fonts/outfit-500.woff2") format("woff2"); font-weight: 500; font-display: optional; }
+@font-face { font-family: "Outfit"; src: url("../fonts/outfit-600.woff2") format("woff2"); font-weight: 600; font-display: optional; }
+@font-face { font-family: "Outfit"; src: url("../fonts/outfit-700.woff2") format("woff2"); font-weight: 700; font-display: optional; }
+@font-face { font-family: "Outfit"; src: url("../fonts/outfit-800.woff2") format("woff2"); font-weight: 800; font-display: optional; }
+@font-face { font-family: "JetBrains Mono"; src: url("../fonts/jetbrains-mono-400.woff2") format("woff2"); font-weight: 400; font-display: optional; }
+@font-face { font-family: "JetBrains Mono"; src: url("../fonts/jetbrains-mono-700.woff2") format("woff2"); font-weight: 700; font-display: optional; }
+
 :root {
   /* Light (site) */
   --c-cream: #FFF3E3;     /* background */
@@ -12,6 +25,7 @@
   --c-blue: #1F4BFF;      /* links/chips, 5.5:1 — white on blue 6.0:1 */
   --c-yellow: #FFCC00;    /* fills only, ink text on it 12.2:1 */
   --c-green: #1E8A3C;
+  --c-blue-soft: #DCE3FF;
 
   /* Dark (intro) */
   --c-night: #0B0B12;
@@ -19,7 +33,7 @@
   --c-red-dk: #FF4D3D;    /* 6.0:1 on night */
   --c-blue-dk: #6C8CFF;   /* 6.4:1 on night */
 
-  /* Type (self-hosted OFL fonts arrive in phase 4; fallbacks until then) */
+  /* Type */
   --f-display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
   --f-sans: "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
