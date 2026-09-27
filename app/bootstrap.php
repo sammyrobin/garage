@@ -27,6 +27,13 @@ require GARAGE_APP . '/helpers.php';
 // touches the production config.php that is uploaded to the server.
 $configFile = getenv('GARAGE_CONFIG') ?: GARAGE_APP . '/config.php';
 if (!is_file($configFile)) {
+    // Not installed yet: send visitors to the one-time installer while it still exists.
+    if (PHP_SAPI !== 'cli' && is_file(GARAGE_ROOT . '/setup.php') && !is_file(GARAGE_ROOT . '/storage/setup.lock')) {
+        $base = rtrim(str_replace('\\', '/', dirname((string) ($_SERVER['SCRIPT_NAME'] ?? '/index.php'))), '/');
+        header('Cache-Control: no-store');
+        header('Location: ' . $base . '/setup.php', true, 302);
+        exit;
+    }
     http_response_code(503);
     error_log('GARAGE: app/config.php is missing');
     exit('Service unavailable.');
