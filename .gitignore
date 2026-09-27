@@ -1,0 +1,28 @@
+# Real configuration (generated from GitHub Secrets on deploy)
+/app/config.php
+.env
+.env.*
+
+# User content & runtime data
+/uploads/*
+!/uploads/.htaccess
+!/uploads/.gitkeep
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/cache/*
+!/storage/cache/.gitkeep
+
+# Dependencies & local tooling
+/vendor/
+/preview/
+/node_modules/
+
+# Local-only files
+PROMPT-GARAGE*
+*.bak
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.claude/
