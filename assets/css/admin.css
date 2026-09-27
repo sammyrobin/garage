@@ -1,0 +1,43 @@
+/* GARAGE — admin panel (exhibition mode). */
+
+.exhibition-banner {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px;
+  padding: 12px var(--gutter);
+  background: var(--c-yellow); color: var(--c-ink);
+  border-bottom: var(--border);
+  font-weight: 600;
+}
+.exhibition-banner p { margin: 0; max-width: 70ch; }
+
+.inline-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+input[type="password"], input[type="text"], input[type="number"], select, textarea {
+  min-height: 44px; padding: 8px 14px;
+  border: var(--border); border-radius: 10px;
+  background: var(--c-paper); color: var(--c-ink);
+  font: 500 1rem var(--f-sans);
+}
+
+.admin-main { padding: 32px var(--gutter) 64px; max-width: 1200px; width: 100%; }
+
+.page-title { font: 900 clamp(2.4rem, 7vw, 4.5rem)/.9 var(--f-display); text-transform: uppercase; margin: 0 0 28px; }
+
+.flash {
+  border: var(--border); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 12px 18px; margin: 0 0 24px; font-weight: 600; background: var(--c-paper);
+}
+.flash--error { background: var(--c-red); color: #fff; }
+.flash--success { background: var(--c-paper); border-left: 12px solid var(--c-green); }
+
+.stat-grid {
+  display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  margin-bottom: 28px;
+}
+.stat-card {
+  background: var(--c-paper); border: var(--border); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 18px 20px;
+}
+.stat-card__label { margin: 0 0 6px; font-weight: 600; color: var(--c-muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.stat-card__value { margin: 0; font: 900 2.6rem/1 var(--f-display); }
+.stat-card__value--mono { font: 700 1.4rem/1.2 var(--f-mono); }
