@@ -10,12 +10,17 @@ declare(strict_types=1);
 
 use Garage\Core\Database;
 use Garage\Core\Migrator;
+use Garage\Support\Installer;
 
 if (PHP_SAPI !== 'cli') {
     exit(1);
 }
 
 require dirname(__DIR__) . '/app/bootstrap.php';
+
+foreach (Installer::ensureRuntimeFolders() as $item) {
+    echo "  installed {$item}\n";
+}
 
 $result = (new Migrator(Database::pdo(), GARAGE_ROOT . '/migrations'))->run();
 

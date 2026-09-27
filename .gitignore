@@ -5,7 +5,6 @@
 
 # User content & runtime data
 /uploads/*
-!/uploads/.htaccess
 !/uploads/.gitkeep
 /storage/logs/*
 !/storage/logs/.gitkeep
