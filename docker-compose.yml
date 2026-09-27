@@ -1,4 +1,5 @@
 # Local development: http://localhost:8090/garage/ (override with GARAGE_PORT)
+# Local inbox (Mailpit): http://localhost:8025
 # Credentials below are for the disposable local database only.
 services:
   app:
@@ -29,6 +30,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+
+  # Catches every e-mail sent locally: http://localhost:8025
+  mail:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"
 
 volumes:
   db-data:
