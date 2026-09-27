@@ -10,8 +10,8 @@ RemoveHandler .php .php3 .php4 .php5 .php7 .php8 .phtml .phar .pl .py .cgi .sh
 RemoveType .php .php3 .php4 .php5 .php7 .php8 .phtml .phar
 SetHandler none
 
-# Only processed WebP images may be served.
-<FilesMatch "\.(?!webp$)[^.]+$">
+# Only processed images may be served (WebP variants + small JPEG for e-mails).
+<FilesMatch "\.(?!(webp|jpg)$)[^.]+$">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>
