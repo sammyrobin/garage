@@ -28,6 +28,12 @@ final class Session
         session_start();
     }
 
+    /** True if a session is active or the browser sent a session cookie. */
+    public static function exists(): bool
+    {
+        return session_status() === PHP_SESSION_ACTIVE || isset($_COOKIE['garage_sid']);
+    }
+
     /** New session ID (prevents session fixation when privileges change). */
     public static function regenerate(): void
     {

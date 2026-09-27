@@ -20,6 +20,10 @@ final class Auth
 
     public static function check(): bool
     {
+        // Visitors without a session cookie are never owners: do not start a session for them.
+        if (!Session::exists()) {
+            return false;
+        }
         $owner = Session::get(self::SESSION_KEY);
         if (!is_array($owner)) {
             return false;

@@ -40,6 +40,12 @@ final class Request
         return $this->query[$key] ?? $default;
     }
 
+    /** All query-string parameters. */
+    public function queryAll(): array
+    {
+        return $this->query;
+    }
+
     public function input(string $key, mixed $default = null): mixed
     {
         return $this->post[$key] ?? $default;

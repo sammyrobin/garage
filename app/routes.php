@@ -9,7 +9,10 @@ use Garage\Controllers\Admin\DashboardController;
 use Garage\Controllers\Admin\SeriesController;
 use Garage\Controllers\Admin\SessionController;
 use Garage\Controllers\BrandStyleController;
+use Garage\Controllers\CarPageController;
 use Garage\Controllers\HomeController;
+use Garage\Controllers\SitemapController;
+use Garage\Controllers\StatsController;
 use Garage\Controllers\System\MigrateController;
 use Garage\Core\Router;
 
@@ -18,6 +21,14 @@ use Garage\Core\Router;
 return (new Router())
     ->get('/', [HomeController::class, 'index'])
     ->get('/brands.css', [BrandStyleController::class, 'show'])
+    ->get('/sitemap.xml', [SitemapController::class, 'index'])
+
+    // Public pages. Localized slugs: /auto/{slug} + /estadisticas (ES), /en/car/{slug} + /en/stats (EN);
+    // both spellings answer in either language so shared links never break.
+    ->get('/auto/{slug}', [CarPageController::class, 'show'])
+    ->get('/car/{slug}', [CarPageController::class, 'show'])
+    ->get('/estadisticas', [StatsController::class, 'index'])
+    ->get('/stats', [StatsController::class, 'index'])
 
     // Admin panel: public to browse (exhibition mode); every POST needs the owner.
     ->get('/admin', [DashboardController::class, 'index'])

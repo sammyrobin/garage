@@ -84,3 +84,29 @@ function brands_css_url(): string
 
     return rtrim((string) Config::get('app.base_path', ''), '/') . '/brands.css?v=' . $version;
 }
+
+/**
+ * Localized public paths: route('car', ['slug' => 'x']) → /garage/auto/x (ES) or /garage/en/car/x (EN).
+ */
+function route(string $name, array $params = [], ?string $lang = null): string
+{
+    return url(route_path($name, $params, $lang), $lang);
+}
+
+/** Path (without base path or language prefix) of a named public route. */
+function route_path(string $name, array $params = [], ?string $lang = null): string
+{
+    $lang ??= Lang::current();
+    $paths = [
+        'home'  => ['es' => '/', 'en' => '/'],
+        'car'   => ['es' => '/auto/{slug}', 'en' => '/car/{slug}'],
+        'stats' => ['es' => '/estadisticas', 'en' => '/stats'],
+        'admin' => ['es' => '/admin', 'en' => '/admin'],
+    ];
+    $path = $paths[$name][$lang] ?? $paths[$name]['es'] ?? '/';
+    foreach ($params as $key => $value) {
+        $path = str_replace('{' . $key . '}', rawurlencode((string) $value), $path);
+    }
+
+    return $path;
+}

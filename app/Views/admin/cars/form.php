@@ -21,7 +21,7 @@ $errorP = static function (string $key) use ($errors): string {
 <div class="page-head">
     <h1 class="page-title"><?= e($car ? t('car.edit_heading') : t('car.new_heading')) ?></h1>
     <?php if ($car): ?>
-        <a class="btn btn--ghost" href="<?= e(url('/auto/' . $car['slug'])) ?>"><?= e(t('car.view_public')) ?></a>
+        <a class="btn btn--ghost" href="<?= e(route('car', ['slug' => $car['slug']])) ?>"><?= e(t('car.view_public')) ?></a>
     <?php endif; ?>
 </div>
 
