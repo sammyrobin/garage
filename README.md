@@ -92,7 +92,7 @@ flowchart LR
 
 ```
 index.php            Front controller
-setup.php            One-time installer (panel password → folders + tables → disables itself)
+setup.php            One-time installer (panel password → config + folders + tables → disables itself)
 .htaccess            Self-contained rules for /garage (does not rely on the portfolio's)
 app/Core/            Router, Request/Response, Database, Auth, Csrf, RateLimiter, ClientIp, Migrator…
 app/Controllers/     Public, Admin, System (migrations)
@@ -185,9 +185,14 @@ does not need to:
 - **Git decides what can never be touched.** `app/config.php`, `uploads/` and the SQLite file are
   ignored by git. The action only uploads or deletes files it tracks, so a deploy can never
   overwrite the config, delete a photo or reset the database.
-- **The config is uploaded once, by hand.** It holds the panel password as a `password_hash()`
-  (never the password), the app key and the migrate token. The SMTP password is not duplicated:
+- **The server writes its own config.** If `app/config.php` is missing, `setup.php` writes it
+  (mode 600) with a `password_hash()` of the panel password (never the password), a random app key
+  and a random migrate token. Nothing is uploaded by hand. The SMTP password is not duplicated:
   it is read at runtime from the portfolio's `mail-config.php`, which that deploy generates.
+- **Only the owner can install.** Until the config exists, the typed password is checked against
+  `app/setup-verifier.php`, a `password_hash()` that lives only in the private deploy repo, so a
+  stranger cannot open the page first and choose the panel password. This public repo has no
+  verifier: here you either upload a config or add your own verifier.
 - **Installing needs no SSH.** `setup.php` asks for the panel password (5 attempts per IP every 15
   minutes), creates `uploads/` with its no-PHP `.htaccess`, creates the database and runs the
   migrations. It then writes `storage/setup.lock` and deletes itself; with the lock in place it
@@ -247,12 +252,14 @@ so that Apache can write to the database file.
 ## Install on shared hosting
 
 1. Upload the code to `public_html/garage/` (in my case, the portfolio deploy does it).
-2. Fill in `app/config.example.php` (URL, `env` = `production`, `session.secure` = `true`, a random
-   `app.key` and `migrate_token`, mail settings) and set the owner password hash with
-   `php bin/set-password.php`. Upload the result by hand as `public_html/garage/app/config.php`.
-3. Make sure `pdo_sqlite` is enabled and `garage/storage/` is writable (755), then open
-   `https://<domain>/garage/setup.php` and enter the panel password. It installs everything once
-   and deletes itself.
+2. Give the installer a way to know it is you, either way:
+   - upload `app/setup-verifier.php` containing `<?php return '<password_hash() of your password>';`
+     (setup.php then writes `app/config.php` itself), or
+   - fill in `app/config.example.php`, set the hash with `php bin/set-password.php` and upload it
+     as `app/config.php`.
+3. Make sure `pdo_sqlite` is enabled and `garage/app/` and `garage/storage/` are writable (755),
+   then open `https://<domain>/garage/setup.php` and enter the panel password. It writes the
+   config if needed, installs everything once and deletes itself (and the verifier).
 4. cPanel → Cron Jobs, every 5 minutes: `/usr/local/bin/php /home/<user>/public_html/garage/bin/notify.php`
 5. Optional: a cPanel API token with the Quota permission in `cpanel.*` adds the disk bar to the
    e-mails; without it they say "n/d".

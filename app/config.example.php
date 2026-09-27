@@ -3,7 +3,8 @@
 /**
  * GARAGE configuration template.
  *
- * Production: copy to app/config.php, fill it in and upload it by hand to the
+ * Production: garage/setup.php writes app/config.php on the server. Or copy this
+ * file to app/config.php, fill it in and upload it by hand to the
  * server (public_html/garage/app/). Local Docker: copy to app/config.local.php.
  * Both files are ignored by git, so a deploy never uploads or deletes them.
  */

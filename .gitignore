@@ -1,6 +1,8 @@
 # Real configuration (panel password hash and keys: uploaded by hand, never committed)
 /app/config.php
 /app/config.local.php
+# Password hash that lets setup.php write config.php: private deploy repo only
+/app/setup-verifier.php
 .env
 .env.*
 
