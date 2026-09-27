@@ -143,3 +143,6 @@ img { max-width: 100%; height: auto; display: block; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
 }
+
+/* Big titles must never overflow, even if a visitor gets the (wider) fallback font. */
+.hero__title, .page-title, .car-info__title, .section-title, .empty-state__title { overflow-wrap: anywhere; max-width: 100%; }

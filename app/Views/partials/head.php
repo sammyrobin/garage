@@ -27,5 +27,8 @@ $shareImage = $ogImage ?? rtrim((string) config('app.url'), '/') . '/assets/img/
 <meta property="og:locale" content="<?= Lang::current() === 'es' ? 'es_MX' : 'en_US' ?>">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preload" href="<?= e(asset('fonts/big-shoulders-display-900.woff2')) ?>" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="<?= e(asset('fonts/outfit-400.woff2')) ?>" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="<?= e(asset('fonts/outfit-700.woff2')) ?>" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="<?= e(asset('fonts/jetbrains-mono-400.woff2')) ?>" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="<?= e(asset('css/base.css')) ?>">
 <link rel="stylesheet" href="<?= e(brands_css_url()) ?>">
