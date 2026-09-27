@@ -153,7 +153,7 @@ final class Catalog
         $cars = Database::query(
             'SELECT c.id, c.slug, c.name, c.is_favorite, p.file_key
                FROM cars c JOIN car_photos p ON p.car_id = c.id AND p.angle = ?
-           ORDER BY c.is_favorite DESC, RAND()
+           ORDER BY c.is_favorite DESC, RANDOM()
               LIMIT ' . (int) $limit,
             ['front']
         )->fetchAll();

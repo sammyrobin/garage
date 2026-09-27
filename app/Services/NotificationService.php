@@ -40,7 +40,7 @@ final class NotificationService
             [self::MAX_ATTEMPTS]
         )->fetchColumn();
 
-        if (!$last || strtotime((string) $last) > time() - self::GROUP_WINDOW) {
+        if (!$last || Database::toTime((string) $last) > time() - self::GROUP_WINDOW) {
             return false;
         }
 
@@ -53,10 +53,10 @@ final class NotificationService
         $token = bin2hex(random_bytes(16));
         $claimed = Database::query(
             'UPDATE notification_queue
-                SET claim_token = ?, claimed_at = NOW()
+                SET claim_token = ?, claimed_at = ?
               WHERE sent_at IS NULL AND attempts < ?
-                AND (claim_token IS NULL OR claimed_at < NOW() - INTERVAL ? SECOND)',
-            [$token, self::MAX_ATTEMPTS, self::STALE_CLAIM]
+                AND (claim_token IS NULL OR claimed_at < ?)',
+            [$token, Database::utc(), self::MAX_ATTEMPTS, Database::utc(-self::STALE_CLAIM)]
         )->rowCount();
 
         if ($claimed === 0) {
@@ -77,7 +77,7 @@ final class NotificationService
         }
 
         if ($sent) {
-            Database::query('UPDATE notification_queue SET sent_at = NOW() WHERE claim_token = ?', [$token]);
+            Database::query('UPDATE notification_queue SET sent_at = ? WHERE claim_token = ?', [Database::utc(), $token]);
         } else {
             Database::query(
                 'UPDATE notification_queue SET attempts = attempts + 1, claim_token = NULL WHERE claim_token = ?',

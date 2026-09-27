@@ -3,20 +3,21 @@
 declare(strict_types=1);
 
 /**
- * Store the owner password hash in app/config.php (local development).
+ * Store the owner password hash in the config file (app/config.php, or the file in
+ * GARAGE_CONFIG: app/config.local.php under Docker).
  *   docker compose exec app php bin/set-password.php
  *
  * The password is read without echo and only its password_hash() is written.
- * In production the deploy workflow does the same from the ADMIN_PASSWORD secret.
+ * Production: run it on a copy of app/config.php before uploading that file.
  */
 
 if (PHP_SAPI !== 'cli') {
     exit(1);
 }
 
-$configFile = dirname(__DIR__) . '/app/config.php';
+$configFile = getenv('GARAGE_CONFIG') ?: dirname(__DIR__) . '/app/config.php';
 if (!is_file($configFile)) {
-    fwrite(STDERR, "app/config.php not found. Copy app/config.example.php first.\n");
+    fwrite(STDERR, basename($configFile) . " not found. Copy app/config.example.php first.\n");
     exit(1);
 }
 
@@ -59,9 +60,9 @@ $updated = preg_replace_callback(
 );
 
 if ($count !== 1 || $updated === null) {
-    fwrite(STDERR, "Could not find 'password_hash' in app/config.php.\n");
+    fwrite(STDERR, "Could not find 'password_hash' in the config file.\n");
     exit(1);
 }
 
 file_put_contents($configFile, $updated, LOCK_EX);
-echo "Owner password hash saved to app/config.php.\n";
+echo "Owner password hash saved to " . basename($configFile) . ".\n";

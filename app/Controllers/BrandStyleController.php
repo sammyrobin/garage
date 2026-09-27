@@ -39,6 +39,6 @@ final class BrandStyleController
     /** Cache-busting version for the <link> tag. */
     public static function version(): string
     {
-        return substr(md5((string) Database::query('SELECT CONCAT(COUNT(*), MAX(updated_at)) FROM brands')->fetchColumn()), 0, 10);
+        return substr(md5((string) Database::query("SELECT COUNT(*) || '-' || COALESCE(MAX(updated_at), '') FROM brands")->fetchColumn()), 0, 10);
     }
 }

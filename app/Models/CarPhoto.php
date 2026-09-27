@@ -48,12 +48,17 @@ final class CarPhoto
     public static function upsert(int $carId, string $angle, array $photo): ?array
     {
         $old = Database::query('SELECT * FROM car_photos WHERE car_id = ? AND angle = ?', [$carId, $angle])->fetch() ?: null;
-        Database::query(
-            'INSERT INTO car_photos (car_id, angle, file_key, width, height, bytes) VALUES (?, ?, ?, ?, ?, ?)
-             ON DUPLICATE KEY UPDATE file_key = VALUES(file_key), width = VALUES(width),
-                                     height = VALUES(height), bytes = VALUES(bytes), created_at = NOW()',
-            [$carId, $angle, $photo['key'], $photo['width'], $photo['height'], $photo['bytes']]
-        );
+        if ($old) {
+            Database::query(
+                'UPDATE car_photos SET file_key = ?, width = ?, height = ?, bytes = ?, created_at = ? WHERE id = ?',
+                [$photo['key'], $photo['width'], $photo['height'], $photo['bytes'], Database::utc(), $old['id']]
+            );
+        } else {
+            Database::query(
+                'INSERT INTO car_photos (car_id, angle, file_key, width, height, bytes) VALUES (?, ?, ?, ?, ?, ?)',
+                [$carId, $angle, $photo['key'], $photo['width'], $photo['height'], $photo['bytes']]
+            );
+        }
 
         return $old;
     }

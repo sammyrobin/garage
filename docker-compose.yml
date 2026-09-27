@@ -1,6 +1,6 @@
 # Local development: http://localhost:8090/garage/ (override with GARAGE_PORT)
 # Local inbox (Mailpit): http://localhost:8025
-# Credentials below are for the disposable local database only.
+# The database is the SQLite file storage/garage.sqlite (created by bin/migrate.php).
 services:
   app:
     build: ./docker
@@ -9,33 +9,14 @@ services:
       - "${GARAGE_PORT:-8090}:80"
     volumes:
       - ./:/var/www/html/garage
-    depends_on:
-      db:
-        condition: service_healthy
-
-  db:
-    image: mysql:8.0
     environment:
-      MYSQL_DATABASE: garage
-      MYSQL_USER: garage
-      MYSQL_PASSWORD: garage_local
-      MYSQL_ROOT_PASSWORD: root_local
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-    ports:
-      - "3307:3306"
-    volumes:
-      - db-data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot_local"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
+      # Local-only config (ignored by git); production uses app/config.php.
+      GARAGE_CONFIG: /var/www/html/garage/app/config.local.php
+    depends_on:
+      - mail
 
   # Catches every e-mail sent locally: http://localhost:8025
   mail:
     image: axllent/mailpit:latest
     ports:
       - "8025:8025"
-
-volumes:
-  db-data:

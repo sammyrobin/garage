@@ -23,7 +23,9 @@ spl_autoload_register(static function (string $class): void {
 
 require GARAGE_APP . '/helpers.php';
 
-$configFile = GARAGE_APP . '/config.php';
+// Docker sets GARAGE_CONFIG to app/config.local.php so local development never
+// touches the production config.php that is uploaded to the server.
+$configFile = getenv('GARAGE_CONFIG') ?: GARAGE_APP . '/config.php';
 if (!is_file($configFile)) {
     http_response_code(503);
     error_log('GARAGE: app/config.php is missing');

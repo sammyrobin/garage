@@ -1,5 +1,5 @@
 -- Initial series. Editable from the admin panel.
-INSERT IGNORE INTO series (name, slug, sort_order) VALUES
+INSERT OR IGNORE INTO series (name, slug, sort_order) VALUES
     ('Mainline',        'mainline',        10),
     ('Car Culture',     'car-culture',     20),
     ('Premium',         'premium',         30),

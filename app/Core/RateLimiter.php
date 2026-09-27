@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Garage\Core;
 
 /**
- * Failed-password limiter per real IP (sliding window, stored in MySQL so it works
+ * Failed-password limiter per real IP (sliding window, stored in SQLite so it works
  * across PHP processes on shared hosting). IPs are stored as an HMAC, never raw.
  */
 final class RateLimiter
@@ -27,24 +27,24 @@ final class RateLimiter
         $row = Database::query(
             'SELECT COUNT(*) AS attempts, MIN(attempted_at) AS oldest
                FROM login_attempts
-              WHERE ip_hash = ? AND attempted_at > NOW() - INTERVAL ? SECOND',
-            [$this->hash($ip), $this->windowSeconds]
+              WHERE ip_hash = ? AND attempted_at > ?',
+            [$this->hash($ip), Database::utc(-$this->windowSeconds)]
         )->fetch();
 
         if ((int) $row['attempts'] < $this->maxAttempts) {
             return 0;
         }
 
-        return max(1, strtotime((string) $row['oldest']) + $this->windowSeconds - time());
+        return max(1, Database::toTime((string) $row['oldest']) + $this->windowSeconds - time());
     }
 
     public function hit(string $ip): void
     {
-        Database::query('INSERT INTO login_attempts (ip_hash, attempted_at) VALUES (?, NOW())', [$this->hash($ip)]);
+        Database::query('INSERT INTO login_attempts (ip_hash, attempted_at) VALUES (?, ?)', [$this->hash($ip), Database::utc()]);
 
         // Housekeeping: old rows are useless.
         if (random_int(1, 20) === 1) {
-            Database::query('DELETE FROM login_attempts WHERE attempted_at < NOW() - INTERVAL 1 DAY');
+            Database::query('DELETE FROM login_attempts WHERE attempted_at < ?', [Database::utc(-86400)]);
         }
     }
 

@@ -8,7 +8,7 @@ AddDefaultCharset UTF-8
 # ---------------------------------------------------------------------------
 # Deny sensitive files anywhere in the tree
 # ---------------------------------------------------------------------------
-<FilesMatch "(^\.|\.(sql|md|txt|log|ini|lock|dist|yml|yaml|sh|bak)$|^(config|config\.example)\.php$|^(composer\.json|docker-compose\.yml|Dockerfile)$)">
+<FilesMatch "(^\.|\.(sql|md|txt|log|ini|lock|dist|sqlite|sqlite-journal|sqlite-wal|sqlite-shm|db|yml|yaml|sh|bak)$|^(config|config\.example|config\.local)\.php$|^(composer\.json|docker-compose\.yml|Dockerfile)$)">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>

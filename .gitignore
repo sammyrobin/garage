@@ -1,14 +1,16 @@
-# Real configuration (generated from GitHub Secrets on deploy)
+# Real configuration (panel password hash and keys: uploaded by hand, never committed)
 /app/config.php
+/app/config.local.php
 .env
 .env.*
 
 # User content & runtime data
-/uploads/*
-!/uploads/.gitkeep
+/uploads/
 /storage/logs/*
 !/storage/logs/.gitkeep
 /storage/cache/*
+/storage/*.lock
+/storage/*.sqlite*
 !/storage/cache/.gitkeep
 
 # Dependencies & local tooling

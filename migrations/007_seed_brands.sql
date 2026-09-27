@@ -1,5 +1,5 @@
 -- Initial brands with an accent color each. Editable from the admin panel.
-INSERT IGNORE INTO brands (name, slug, accent_color, sort_order) VALUES
+INSERT OR IGNORE INTO brands (name, slug, accent_color, sort_order) VALUES
     ('Ferrari',              'ferrari',              '#D40000', 10),
     ('Porsche',              'porsche',              '#B8860B', 20),
     ('Lamborghini',          'lamborghini',          '#C9A227', 30),

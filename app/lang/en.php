@@ -247,6 +247,6 @@ return [
     'stats.rarities' => 'Rarities',
     'stats.oldest' => 'The oldest',
     'stats.sth_list' => 'Super Treasure Hunts',
-    'footer.lead' => 'A personal project by Samuel Torres: plain PHP, MySQL and a lot of love for die-cast cars.',
+    'footer.lead' => 'A personal project by Samuel Torres: plain PHP, SQLite and a lot of love for die-cast cars.',
     'footer.portfolio' => 'Portfolio',
 ];

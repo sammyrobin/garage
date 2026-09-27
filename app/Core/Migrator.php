@@ -8,8 +8,8 @@ use PDO;
 
 /**
  * Applies migrations/NNN_name.sql in order, once each, tracked in schema_migrations.
- * Files are written to be idempotent too (IF NOT EXISTS / INSERT IGNORE), so a
- * partially applied file can safely be re-run.
+ * Each file runs inside one transaction (SQLite rolls back DDL too), and files are
+ * written to be idempotent as well (IF NOT EXISTS / INSERT OR IGNORE).
  */
 final class Migrator
 {
@@ -22,9 +22,9 @@ final class Migrator
     {
         $this->pdo->exec(
             'CREATE TABLE IF NOT EXISTS schema_migrations (
-                version VARCHAR(191) NOT NULL PRIMARY KEY,
-                applied_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+                version    TEXT NOT NULL PRIMARY KEY,
+                applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )'
         );
 
         $done = $this->pdo->query('SELECT version FROM schema_migrations')->fetchAll(PDO::FETCH_COLUMN);
@@ -38,11 +38,17 @@ final class Migrator
                 continue;
             }
 
-            foreach (self::statements((string) file_get_contents($file)) as $sql) {
-                $this->pdo->exec($sql);
+            $this->pdo->beginTransaction();
+            try {
+                foreach (self::statements((string) file_get_contents($file)) as $sql) {
+                    $this->pdo->exec($sql);
+                }
+                $this->pdo->prepare('INSERT INTO schema_migrations (version) VALUES (?)')->execute([$version]);
+                $this->pdo->commit();
+            } catch (\Throwable $e) {
+                $this->pdo->rollBack();
+                throw new \RuntimeException("Migration {$version} failed: " . $e->getMessage(), 0, $e);
             }
-
-            $this->pdo->prepare('INSERT INTO schema_migrations (version) VALUES (?)')->execute([$version]);
             $applied[] = $version;
             Logger::info('Migration applied', ['version' => $version]);
         }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Garage\Core;
 
-/** Read-only access to app/config.php using dot notation ("db.host"). */
+/** Read-only access to app/config.php using dot notation ("admin.session_ttl"). */
 final class Config
 {
     private static array $items = [];

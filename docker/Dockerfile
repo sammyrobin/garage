@@ -1,10 +1,11 @@
-# Local development image: mirrors the production stack (PHP 8.3 + Apache).
+# Local development image: mirrors the production stack (PHP 8.3 + Apache + SQLite;
+# pdo_sqlite ships with the official image).
 FROM php:8.3-apache
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends libjpeg62-turbo-dev libpng-dev libwebp-dev libfreetype6-dev \
  && docker-php-ext-configure gd --with-jpeg --with-webp --with-freetype \
- && docker-php-ext-install -j"$(nproc)" gd pdo_mysql exif \
+ && docker-php-ext-install -j"$(nproc)" gd exif \
  && a2enmod rewrite headers expires deflate \
  && rm -rf /var/lib/apt/lists/*
 

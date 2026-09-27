@@ -13,8 +13,9 @@ use Garage\Core\Response;
 use Garage\Support\Installer;
 
 /**
- * POST /_migrate with header "X-Migrate-Token: <token>".
- * Called by the deploy workflow. Wrong method, missing or wrong token → plain 404,
+ * Applies migrations added after the first install (setup.php runs only once):
+ *   curl -X POST -H "X-Migrate-Token: <migrate_token>" https://samueltorres.dev/garage/_migrate
+ * Wrong method, missing or wrong token → plain 404,
  * indistinguishable from any unknown URL.
  */
 final class MigrateController

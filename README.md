@@ -1,15 +1,14 @@
 # GARAGE — by Samuel Torres
 
-[![Deploy](https://github.com/sammyrobin/garage/actions/workflows/deploy.yml/badge.svg)](https://github.com/sammyrobin/garage/actions/workflows/deploy.yml)
 ![PHP 8.3](https://img.shields.io/badge/PHP-8.3-777BB4?logo=php&logoColor=white)
-![MySQL 8](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)
+![SQLite 3](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite&logoColor=white)
 ![No framework](https://img.shields.io/badge/framework-none-141414)
 ![License: MIT](https://img.shields.io/badge/license-MIT-DD0200)
 
 A web app to catalogue and show off my die-cast car collection (Hot Wheels): a 3D intro,
 a filterable gallery, a five-angle viewer per car, statistics, and a control panel that
-anyone can explore in **exhibition mode**. It is plain PHP 8.3 + MySQL, built to run on
-shared cPanel hosting with no Node, no SSH and no background workers.
+anyone can explore in **exhibition mode**. It is plain PHP 8.3 + SQLite, built to run on
+shared cPanel hosting with no Node, no SSH, no background workers and no database server.
 
 **Live demo:** https://samueltorres.dev/garage · **Control panel:** https://samueltorres.dev/garage/admin
 
@@ -19,9 +18,9 @@ shared cPanel hosting with no Node, no SSH and no background workers.
 > escala. Tiene una intro 3D con fotos de mis autos, una galería con filtros combinables que
 > se reflejan en la URL, un visor de 5 ángulos por auto, estadísticas y un panel de control
 > público en modo exhibición: cualquiera puede explorarlo, pero solo el dueño puede guardar
-> con su contraseña. Está hecha en PHP 8.3 puro con MySQL para hosting compartido. Las fotos se
+> con su contraseña. Está hecha en PHP 8.3 puro con SQLite (la base de datos es un archivo) para hosting compartido. Las fotos se
 > re-codifican a WebP sin metadatos EXIF ni GPS, y cada auto nuevo dispara un correo con el
-> estado del disco. Se despliega sola por FTPS con GitHub Actions.
+> estado del disco. Se despliega por FTPS con GitHub Actions junto con mi portafolio.
 
 | Gallery | Car page | Quick-add form | Mobile |
 |---|---|---|---|
@@ -58,14 +57,14 @@ shared cPanel hosting with no Node, no SSH and no background workers.
 | Layer | Choice |
 |---|---|
 | Backend | PHP 8.3, no framework: front controller, ~80-line router, PDO (prepared statements only) |
-| Database | MySQL 8, numbered idempotent SQL migrations |
+| Database | SQLite 3 (one file in `storage/`), numbered transactional SQL migrations |
 | Frontend | Server-rendered HTML, CSS custom properties, vanilla JS, GSAP 3 (ScrollTrigger + Flip), self-hosted |
 | Images | GD: finfo check → re-encode → WebP 1600/800/400 px, EXIF/GPS stripped |
 | Mail | Socket SMTP client (no Composer), HTML + text |
 | Fonts | Big Shoulders Display, Outfit, JetBrains Mono (SIL OFL, woff2, self-hosted) |
 | Hosting | GoDaddy cPanel shared hosting behind Cloudflare |
-| CI/CD | GitHub Actions: `php -l` → config from Secrets → FTPS → migrations over HTTPS → health check |
-| Local | Docker Compose: PHP 8.3 + Apache, MySQL 8, Mailpit |
+| Deploy | Ships with my portfolio over FTPS (GitHub Actions); one-time `setup.php` installer |
+| Local | Docker Compose: PHP 8.3 + Apache, Mailpit |
 
 ## Architecture
 
@@ -78,20 +77,22 @@ flowchart LR
     FC --> R{Router}
     R --> PUB[Public controllers<br/>gallery · car · stats · sitemap]
     R --> ADM[Admin controllers<br/>exhibition mode]
+    AP -->|once| SET[setup.php<br/>password · then deletes itself]
     R --> MIG[/_migrate<br/>token-protected/]
     ADM --> AUTH[Auth · CSRF · rate limit]
     ADM --> SVC[Services<br/>ImageProcessor · CsvService<br/>NotificationService · DiskStatus]
-    PUB --> DB[(MySQL)]
+    PUB --> DB[(SQLite<br/>storage/garage.sqlite)]
     SVC --> DB
     SVC --> UP[(uploads/)]
     SVC -->|SMTP| MAIL[contacto@samueltorres.dev]
     SVC -->|UAPI Quota| CP[cPanel]
-    GH[GitHub Actions] -->|FTPS| AP
-    GH -->|POST X-Migrate-Token| MIG
+    SET --> DB
+    GH[GitHub Actions<br/>portfolio deploy] -->|FTPS, code only| AP
 ```
 
 ```
 index.php            Front controller
+setup.php            One-time installer (panel password → folders + tables → disables itself)
 .htaccess            Self-contained rules for /garage (does not rely on the portfolio's)
 app/Core/            Router, Request/Response, Database, Auth, Csrf, RateLimiter, ClientIp, Migrator…
 app/Controllers/     Public, Admin, System (migrations)
@@ -99,10 +100,10 @@ app/Services/        ImageProcessor, PhotoStorage, CarService, Catalog, Stats, C
 app/Views/           Plain PHP templates (every value goes through e())
 app/lang/            es.php, en.php
 migrations/          001_…sql → 008_…sql
-bin/                 CLI: migrate, set-password, notify (cron), build-config (deploy)
+bin/                 CLI: migrate, set-password, notify (cron)
 assets/              CSS, JS, fonts, GSAP
 uploads/             Processed photos only (PHP disabled; not in git, never touched by deploys)
-storage/             logs/ + cache/ (web-blocked)
+storage/             garage.sqlite + logs/ + cache/ (web-blocked, not in git)
 ```
 
 ## Data model
@@ -121,26 +122,27 @@ erDiagram
         string name
         int brand_id FK
         string model
-        decimal cost_mxn "private"
+        numeric cost_mxn "private"
         int series_id FK
-        smallint real_year
-        smallint casting_year
+        int real_year
+        int casting_year
         string collection_number
-        enum rarity
-        enum item_condition
+        text rarity "CHECK list"
+        text item_condition "CHECK list"
         bool is_favorite
     }
-    car_photos { int id PK  int car_id FK  enum angle "front|back|left|right|top"  char file_key UK }
-    notification_queue { int id PK  int car_id FK  datetime queued_at  char claim_token  datetime sent_at }
-    login_attempts { bigint id PK  char ip_hash "HMAC"  datetime attempted_at }
+    car_photos { int id PK  int car_id FK  text angle "front|back|left|right|top"  text file_key UK }
+    notification_queue { int id PK  int car_id FK  text queued_at  text claim_token  text sent_at }
+    login_attempts { int id PK  text ip_hash "HMAC"  text attempted_at }
 ```
 
-There is no `users` table. The single owner is represented by a `password_hash()` in the
-generated config.
+There is no `users` table. The single owner is represented by a `password_hash()` in
+`app/config.php`. Enumerations are `CHECK` constraints, foreign keys are enforced
+(`PRAGMA foreign_keys = ON`), triggers keep `updated_at` current, and timestamps are UTC.
 
 ## Technical decisions
 
-**Why plain PHP.** The host runs PHP and MySQL and nothing else: no Node, no SSH, no workers.
+**Why plain PHP.** The host runs PHP and nothing else I can rely on: no Node, no SSH, no workers.
 Without a framework, what I deploy is what runs. The app ships no `vendor/` and has no build
 step, and every piece (router, migrations, SMTP, CSRF) is small enough to read in one sitting.
 Composer was not necessary.
@@ -169,14 +171,30 @@ sends the password alone (a small JSON request). Photos only leave the browser o
 is accepted. Without JS, the server still checks rate limit → CSRF → password *before* calling
 `finfo` or GD. PHP then discards the temporary uploads.
 
-**Deploying to shared hosting.** GitHub Actions lints every file, then generates `app/config.php`
-from Secrets. The admin password is stored only as a hash. SamKirkland/FTP-Deploy-Action then
-syncs changed files over FTPS. `uploads/` and `storage/` are excluded, so a deploy can never
-delete photos or logs; the protective `uploads/.htaccess` is reinstalled by the migration step
-instead. With no SSH, migrations run through `POST /_migrate`, which answers 404 without the right
-`X-Migrate-Token`. A health check then requests the live pages. The very first run is a dry run.
-The deploy is isolated from the portfolio's own deploy: it uses a separate FTP account rooted at
-`public_html/garage`, with its own sync state.
+**Why SQLite.** One owner writes, many visitors read, and the whole collection is a few thousand
+rows at most. That is exactly SQLite's sweet spot. The database is a single file in `storage/`,
+so there is no database server, user or password to manage, and a backup is one file copy. PHP
+ships `pdo_sqlite`, so nothing extra is installed. Writes are short transactions with a busy
+timeout, which is plenty for one person adding cars.
+
+**Deploying to shared hosting.** The app lives in the `garage/` folder of my portfolio's (private)
+repository and ships with the portfolio's own GitHub Actions workflow: SamKirkland/FTP-Deploy-Action
+syncs changed files over FTPS to `public_html`. The workflow knows nothing about GARAGE, and it
+does not need to:
+
+- **Git decides what can never be touched.** `app/config.php`, `uploads/` and the SQLite file are
+  ignored by git. The action only uploads or deletes files it tracks, so a deploy can never
+  overwrite the config, delete a photo or reset the database.
+- **The config is uploaded once, by hand.** It holds the panel password as a `password_hash()`
+  (never the password), the app key and the migrate token. The SMTP password is not duplicated:
+  it is read at runtime from the portfolio's `mail-config.php`, which that deploy generates.
+- **Installing needs no SSH.** `setup.php` asks for the panel password (5 attempts per IP every 15
+  minutes), creates `uploads/` with its no-PHP `.htaccess`, creates the database and runs the
+  migrations. It then writes `storage/setup.lock` and deletes itself; with the lock in place it
+  answers 404 even if a later deploy brings the file back. Later migrations run through
+  `POST /_migrate`, which answers 404 without the right `X-Migrate-Token`.
+
+This public repository is a read-only mirror of that folder, and it has no workflow of its own.
 
 **E-mails without cron coupling.** "Save" sends one summary with everything pending; "Save and add
 another" only queues. If the tab is closed, whatever is left is sent once 10 minutes pass without
@@ -191,7 +209,9 @@ server's disk, not my quota. The size of `uploads/` is computed in PHP and cache
 ## Security
 
 - All HTML output goes through `e()` (`htmlspecialchars`, `ENT_QUOTES`), and all SQL uses PDO
-  prepared statements with emulation off. Dynamic column lists come only from whitelists.
+  prepared statements. Dynamic column lists come only from whitelists.
+- The SQLite file lives in `storage/`, which is blocked twice: a rewrite rule answers 404 for the
+  folder and `*.sqlite` files are denied anywhere in the tree. It is never in git.
 - A CSRF token guards every form. The session cookie is `Secure` + `HttpOnly` + `SameSite=Lax`,
   its ID is regenerated on unlock, and it expires after 30 minutes of inactivity.
 - The owner password is limited to **5 failed attempts per real IP every 15 minutes**. The real IP
@@ -199,8 +219,8 @@ server's disk, not my quota. The size of `uploads/` is computed in PHP and cache
   ranges. IPs are stored as an HMAC and logged masked.
 - Headers: a strict CSP (`script-src 'self'`, `style-src 'self'`, no inline code: brand colors come
   from a generated stylesheet), plus `X-Frame-Options: DENY`, `nosniff` and `Referrer-Policy`.
-- `app/`, `migrations/`, `storage/`, `bin/`, dotfiles, `*.sql`, `*.md` and config are denied by
-  `.htaccess`. `uploads/` has the PHP engine off and serves only `.webp`/`.jpg`.
+- `app/`, `migrations/`, `storage/`, `bin/`, dotfiles, `*.sql`, `*.sqlite`, `*.md` and config are
+  denied by `.htaccess`. `uploads/` has the PHP engine off and serves only `.webp`/`.jpg`.
 - Private data is filtered server-side. Cost columns are never selected for public pages, and
   without an owner session the panel receives `null`, not a hidden value.
 - Production errors are logged in `storage/logs` and visitors see a generic page.
@@ -211,25 +231,33 @@ Requirements: Docker Desktop.
 
 ```bash
 git clone https://github.com/sammyrobin/garage.git && cd garage
-cp app/config.example.php app/config.php          # set db.pass to "garage_local"
+cp app/config.example.php app/config.local.php    # Docker reads this file (GARAGE_CONFIG)
 docker compose up -d --build
-docker compose exec app php bin/migrate.php        # tables, seeds, uploads/.htaccess
-docker compose exec app php bin/set-password.php   # owner password (typed hidden)
+docker compose exec -u www-data app php bin/migrate.php        # SQLite file, tables, seeds, uploads/.htaccess
+docker compose exec -u www-data app php bin/set-password.php   # owner password (typed hidden)
 ```
 
 - App: http://localhost:8090/garage/ (English: `/garage/en/`, panel: `/garage/admin`)
 - Mailpit (catches every e-mail): http://localhost:8025
 
 For local mail, set `mail.host` to `mail`, port `1025`, `secure` to `''` and an empty username.
-The port can be changed with `GARAGE_PORT=8081 docker compose up -d`.
+The port can be changed with `GARAGE_PORT=8081 docker compose up -d`. Run the CLI as `www-data`
+so that Apache can write to the database file.
 
-## Deploy setup
+## Install on shared hosting
 
-1. Repository **Secrets**: `FTP_SERVER`, `FTP_USERNAME`, `FTP_PASSWORD`, `DB_NAME`, `DB_USER`,
-   `DB_PASS`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `MIGRATE_TOKEN`, `APP_KEY`, `SMTP_PASSWORD`,
-   `CPANEL_HOST`, `CPANEL_USER`, `CPANEL_API_TOKEN`.
-2. The workflow runs as a **dry run** until the repository **variable** `DRY_RUN` is set to `false`.
-3. cPanel → Cron Jobs, every 5 minutes: `/usr/local/bin/php /home/<user>/public_html/garage/bin/notify.php`
+1. Upload the code to `public_html/garage/` (in my case, the portfolio deploy does it).
+2. Fill in `app/config.example.php` (URL, `env` = `production`, `session.secure` = `true`, a random
+   `app.key` and `migrate_token`, mail settings) and set the owner password hash with
+   `php bin/set-password.php`. Upload the result by hand as `public_html/garage/app/config.php`.
+3. Make sure `pdo_sqlite` is enabled and `garage/storage/` is writable (755), then open
+   `https://<domain>/garage/setup.php` and enter the panel password. It installs everything once
+   and deletes itself.
+4. cPanel → Cron Jobs, every 5 minutes: `/usr/local/bin/php /home/<user>/public_html/garage/bin/notify.php`
+5. Optional: a cPanel API token with the Quota permission in `cpanel.*` adds the disk bar to the
+   e-mails; without it they say "n/d".
+
+**Backups.** Download `storage/garage.sqlite` and `uploads/` from the File Manager.
 
 ## Roadmap
 

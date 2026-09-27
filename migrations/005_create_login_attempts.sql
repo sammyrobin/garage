@@ -1,8 +1,8 @@
 -- Failed owner-password attempts, keyed by HMAC of the real visitor IP (never the raw IP).
 CREATE TABLE IF NOT EXISTS login_attempts (
-    id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    ip_hash      CHAR(64) NOT NULL,
-    attempted_at DATETIME NOT NULL,
-    PRIMARY KEY (id),
-    KEY idx_login_attempts_ip_time (ip_hash, attempted_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    ip_hash      TEXT NOT NULL CHECK (length(ip_hash) = 64),
+    attempted_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_login_attempts_ip_time ON login_attempts (ip_hash, attempted_at);

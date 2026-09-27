@@ -5,7 +5,7 @@ declare(strict_types=1);
 /**
  * Run pending migrations from the command line (local development).
  *   docker compose exec app php bin/migrate.php
- * In production the deploy workflow calls POST /_migrate instead (no SSH on shared hosting).
+ * In production open setup.php once instead (no SSH on shared hosting).
  */
 
 use Garage\Core\Database;
