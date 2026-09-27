@@ -1,0 +1,32 @@
+-- One row per die-cast car. Only name, brand and model are required.
+-- cost_mxn is PRIVATE: never rendered without an owner session.
+CREATE TABLE IF NOT EXISTS cars (
+    id                INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    slug              VARCHAR(170) NOT NULL,
+    name              VARCHAR(150) NOT NULL,
+    brand_id          INT UNSIGNED NOT NULL,
+    model             VARCHAR(150) NOT NULL,
+    cost_mxn          DECIMAL(10,2) UNSIGNED NULL,
+    series_id         INT UNSIGNED NULL,
+    real_year         SMALLINT UNSIGNED NULL,
+    casting_year      SMALLINT UNSIGNED NULL,
+    collection_number VARCHAR(20)  NULL,
+    color             VARCHAR(60)  NULL,
+    rarity            ENUM('mainline','treasure_hunt','super_treasure_hunt','premium','red_line_club','limited','other') NULL,
+    item_condition    ENUM('carded','loose','damaged') NULL,
+    acquired_at       DATE         NULL,
+    notes             TEXT         NULL,
+    is_favorite       TINYINT(1)   NOT NULL DEFAULT 0,
+    created_at        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_cars_slug (slug),
+    KEY idx_cars_brand (brand_id),
+    KEY idx_cars_series (series_id),
+    KEY idx_cars_rarity (rarity),
+    KEY idx_cars_real_year (real_year),
+    KEY idx_cars_created (created_at),
+    KEY idx_cars_favorite (is_favorite),
+    CONSTRAINT fk_cars_brand  FOREIGN KEY (brand_id)  REFERENCES brands (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_cars_series FOREIGN KEY (series_id) REFERENCES series (id) ON UPDATE CASCADE ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
